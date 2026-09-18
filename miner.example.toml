@@ -10,7 +10,8 @@ explorer_url = ""
 name = "Meldralite"
 code = "MLT"
 id = "0"
-units_per_mint = 1
+# Whole or fractional currency amount. Smaller amounts reduce the required work.
+units_per_mint = "0.1"
 
 [wallet]
 # Your Arkovia account in RS format, e.g. ARK-XXXX-XXXX-XXXX-XXXXX

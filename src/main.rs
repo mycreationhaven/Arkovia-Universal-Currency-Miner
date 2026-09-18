@@ -24,9 +24,9 @@ fn init(path:&std::path::Path, interactive:bool, force:bool)->Result<()> {
     let account_rs=ask("Your Arkovia RS account", "")?;
     let account_id=ask("Your numeric account ID", "")?;
     let public_key=ask("Your 64-character public key", "")?;
-    let units=ask("Whole units per mint", "1")?;
+    let units=ask("MLT amount per mint", "0.1")?;
     let threads=ask("CPU threads (0 = all)", "0")?;
-    let config=format!("# Created by the Arkovia Universal Currency Miner setup wizard.\n[node]\nurl = \"{}\"\ntimeout_seconds = 20\nexplorer_url = \"\"\n\n[currency]\nname = \"{}\"\ncode = \"{}\"\nid = \"0\"\nunits_per_mint = {}\n\n[wallet]\naccount_rs = \"{}\"\naccount_id = \"{}\"\npublic_key = \"{}\"\n\n[miner]\nthreads = {}\ninitial_nonce = \"0\"\nrefresh_seconds = 20\nsubmit_mode = \"prepare\"\n\n[fees]\nfee_nqt = \"1000000\"\n\n[signer]\ncommand = \"\"\n",quote(&node),quote(&name),quote(&code),units.trim(),quote(&account_rs),quote(&account_id),quote(&public_key),threads.trim());
+    let config=format!("# Created by the Arkovia Universal Currency Miner setup wizard.\n[node]\nurl = \"{}\"\ntimeout_seconds = 20\nexplorer_url = \"\"\n\n[currency]\nname = \"{}\"\ncode = \"{}\"\nid = \"0\"\nunits_per_mint = \"{}\"\n\n[wallet]\naccount_rs = \"{}\"\naccount_id = \"{}\"\npublic_key = \"{}\"\n\n[miner]\nthreads = {}\ninitial_nonce = \"0\"\nrefresh_seconds = 20\nsubmit_mode = \"prepare\"\n\n[fees]\nfee_nqt = \"1000000\"\n\n[signer]\ncommand = \"\"\n",quote(&node),quote(&name),quote(&code),quote(units.trim()),quote(&account_rs),quote(&account_id),quote(&public_key),threads.trim());
     fs::write(path,config)?; let checked=Config::load(path)?; checked.validate_mining()?; println!("\x1b[92mCreated {}. Run `status` first, then mine in prepare mode.\x1b[0m",path.display()); Ok(())
 }
 fn ask(label:&str, default:&str)->Result<String>{ if default.is_empty(){print!("{label}: ");}else{print!("{label} [{default}]: ");}io::stdout().flush()?;let mut value=String::new();io::stdin().read_line(&mut value)?;let value=value.trim().to_owned();Ok(if value.is_empty(){default.to_owned()}else{value}) }
@@ -37,9 +37,9 @@ fn mine(config: Config) -> Result<()> {
     config.validate_mining()?; banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?;
     let currency=api.get_currency(&config.currency.code)?; let currency_id=config.currency_id()?.unwrap_or(currency.currency.parse()?);
     if currency.algorithm != Some(5) { bail!("{} ({}) is not a Scrypt minting currency (expected algorithm ID 5)", currency.code, currency.currency); }
-    let decimals=currency.decimals; let multiplier=10u64.checked_pow(decimals as u32).context("unsupported currency decimals")?; let units=config.currency.units_per_mint.checked_mul(multiplier).context("units overflow")?;
+    let decimals=currency.decimals; let units=config.mint_units_atomic(decimals)?;
     let account_id=config.account_id()?; let threads=if config.miner.threads==0 { num_cpus::get() } else { config.miner.threads }; let fee=config.fee_nqt()?;
-    println!("\x1b[92mCurrency: {} ({}) | ID: {} | Algorithm: Scrypt\nAccount: {} | Units: {} | CPU threads: {} | Fee: {} NQT\x1b[0m", config.currency.name,currency.code,currency_id,config.wallet.account_rs,units,threads,fee);
+    println!("\x1b[92mCurrency: {} ({}) | ID: {} | Algorithm: Scrypt\nAccount: {} | Mint amount: {} {} | CPU threads: {} | Fee: {} NQT\x1b[0m", config.currency.name,currency.code,currency_id,config.wallet.account_rs,config.currency.units_per_mint,currency.code,threads,fee);
     loop {
         let target=api.get_minting_target(currency_id,&config.wallet.account_rs,units)?; let target_bytes: [u8;32]=hex::decode(&target.target_bytes).context("invalid targetBytes hex")?.try_into().map_err(|_| anyhow::anyhow!("targetBytes must contain 32 bytes"))?;
         println!("\x1b[92mConnection: ONLINE | Difficulty: {} | Counter: {} | searching…\x1b[0m",target.difficulty,target.counter);

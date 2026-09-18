@@ -57,7 +57,7 @@ url = "https://arkovia-node1.mywire.org/nxt"
 [currency]
 name = "Meldralite"
 code = "MLT"
-units_per_mint = 1
+units_per_mint = "0.1"
 
 [wallet]
 account_rs = "ARK-XXXX-XXXX-XXXX-XXXXX"
@@ -66,6 +66,8 @@ public_key = "YOUR_64_CHARACTER_HEX_PUBLIC_KEY"
 ```
 
 Leave `submit_mode = "prepare"` for your first run. It writes an unsigned transaction locally after a valid solution is found; it does not submit it.
+
+`units_per_mint` accepts exact whole or fractional amounts. For MLT, use quotes and up to eight decimal places. The recommended public-miner starting point is `"0.1"`; smaller rewards such as `"0.01"` or `"0.001"` lower the Scrypt work required per mint, but each successful mint still pays the network fee in ARKOS.
 
 ### 3. Check the node and build
 
@@ -213,6 +215,7 @@ Set the PowerShell `command` and `broadcast` settings from [LOCAL_SIGNER.md](LOC
 | `No wallet.public_key configured` | Add the 64-character public key for the wallet you are mining with. |
 | `Connection` error | Check `node.url`, your internet connection, and whether the node is online. |
 | Computer becomes slow | Lower `[miner].threads`, such as `threads = 1` or `threads = 2`. |
+| `units_per_mint has more than 8 decimal places` | Meldralite has eight decimal places. Use no more than eight digits after the decimal point. |
 
 ## Setup wizard reference
 

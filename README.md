@@ -5,6 +5,7 @@ A Rust CPU miner for Scrypt (`algorithm = 5`) currencies issued through the Arko
 ## MVP capabilities
 
 - Configurable node, currency code/ID, mint amount, wallet account/public key, CPU threads, and fee.
+- Exact whole or fractional mint amounts, such as `0.1` or `0.001`, without floating-point rounding.
 - Protocol-compatible Scrypt work: `N=1024, r=1, p=1`, 32-byte output.
 - Uses `getCurrency`, `getMintingTarget`, `currencyMint`, and `broadcastTransaction`.
 - Enforces the 0.01 ARKOS minimum fee (`1,000,000 NQT`).
