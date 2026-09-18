@@ -1,0 +1,32 @@
+# Copy to miner.toml and edit. Never place a secret phrase in this file.
+[node]
+url = "https://arkovia-node1.mywire.org/nxt"
+timeout_seconds = 20
+
+[currency]
+# Leave id at 0 to resolve it from code when mining starts.
+name = "Meldralite"
+code = "MLT"
+id = "0"
+units_per_mint = 1
+
+[wallet]
+# Your Arkovia account in RS format, e.g. ARK-XXXX-XXXX-XXXX-XXXXX
+account_rs = ""
+# Your numeric account ID. This is required until offline account derivation is added.
+account_id = "0"
+
+[miner]
+threads = 0 # 0 = use all logical CPU cores
+initial_nonce = "0" # 0 = choose a random starting nonce
+refresh_seconds = 20
+submit_mode = "prepare" # prepare creates an unsigned transaction only; broadcast uses a local signer command
+
+[fees]
+# 0.01 ARKOS expressed in atomic NQT units. Lower values are rejected.
+fee_nqt = "1000000"
+
+[signer]
+# Optional local-only command. The miner pipes unsigned transaction JSON to stdin and expects
+# a signed transaction hex string on stdout. It is never sent to the network.
+command = ""
