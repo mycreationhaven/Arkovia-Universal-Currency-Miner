@@ -2,3 +2,4 @@
 /miner.toml
 /miner.local.toml
 *.log
+/prepared-mint-*.json

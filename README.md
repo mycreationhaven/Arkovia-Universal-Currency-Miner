@@ -4,11 +4,12 @@ A Rust CPU miner for Scrypt (`algorithm = 5`) currencies issued through the Arko
 
 ## MVP capabilities
 
-- Configurable node, currency code/ID, mint amount, wallet account, CPU threads, and fee.
+- Configurable node, currency code/ID, mint amount, wallet account/public key, CPU threads, and fee.
 - Protocol-compatible Scrypt work: `N=1024, r=1, p=1`, 32-byte output.
 - Uses `getCurrency`, `getMintingTarget`, `currencyMint`, and `broadcastTransaction`.
 - Enforces the 0.01 ARKOS minimum fee (`1,000,000 NQT`).
-- `prepare` mode creates unsigned mint transactions only. `broadcast` mode calls a **local** signer command; secret phrases never leave the local device.
+- Refreshes stale targets on a configurable timer and displays a live hash rate and attempts counter.
+- `prepare` mode saves unsigned mint transactions locally. `broadcast` mode calls a **local** signer command; secret phrases never leave the local device.
 - Matrix-style terminal display and Windows/Linux launch scripts.
 
 ## First testnet run

@@ -16,7 +16,7 @@ pub struct Config {
 
 #[derive(Debug, Clone, Deserialize)] pub struct NodeConfig { pub url: String, #[serde(default = "default_timeout")] pub timeout_seconds: u64 }
 #[derive(Debug, Clone, Deserialize)] pub struct CurrencyConfig { pub name: String, pub code: String, #[serde(default)] pub id: String, pub units_per_mint: u64 }
-#[derive(Debug, Clone, Deserialize)] pub struct WalletConfig { pub account_rs: String, #[serde(default)] pub account_id: String }
+#[derive(Debug, Clone, Deserialize)] pub struct WalletConfig { pub account_rs: String, #[serde(default)] pub account_id: String, #[serde(default)] pub public_key: String }
 #[derive(Debug, Clone, Deserialize)] pub struct MinerConfig { #[serde(default)] pub threads: usize, #[serde(default)] pub initial_nonce: String, #[serde(default = "default_refresh")] pub refresh_seconds: u64, #[serde(default = "default_mode")] pub submit_mode: String }
 #[derive(Debug, Clone, Deserialize)] pub struct FeesConfig { pub fee_nqt: String }
 #[derive(Debug, Clone, Default, Deserialize)] pub struct SignerConfig { #[serde(default)] pub command: String }
@@ -32,6 +32,7 @@ impl Config {
     pub fn fee_nqt(&self) -> Result<u64> { Ok(self.fees.fee_nqt.parse()?) }
     fn validate(&self) -> Result<()> {
         if self.node.url.trim().is_empty() || self.wallet.account_rs.trim().is_empty() { bail!("node.url and wallet.account_rs are required") }
+        if !self.wallet.public_key.is_empty() && (self.wallet.public_key.len() != 64 || !self.wallet.public_key.bytes().all(|b| b.is_ascii_hexdigit())) { bail!("wallet.public_key must be a 64-character hexadecimal public key") }
         if self.currency.units_per_mint == 0 { bail!("currency.units_per_mint must be greater than zero") }
         if self.fee_nqt()? < MINIMUM_FEE_NQT { bail!("fee_nqt must be at least {MINIMUM_FEE_NQT} (0.01 ARKOS)") }
         if !matches!(self.miner.submit_mode.as_str(), "prepare" | "broadcast") { bail!("miner.submit_mode must be prepare or broadcast") }
