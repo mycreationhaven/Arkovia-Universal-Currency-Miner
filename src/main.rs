@@ -5,15 +5,32 @@ use api::{ArkoviaApi, signer_payload};
 use clap::{Parser, Subcommand};
 use config::Config;
 use rand::Rng;
-use std::{fs, path::PathBuf, process::{Command, Stdio}, sync::{atomic::{AtomicBool, AtomicU64, Ordering}, Arc}, thread, time::{Duration, Instant, SystemTime, UNIX_EPOCH}};
+use std::{fs, io::{self, Write}, path::PathBuf, process::{Command, Stdio}, sync::{atomic::{AtomicBool, AtomicU64, Ordering}, Arc}, thread, time::{Duration, Instant, SystemTime, UNIX_EPOCH}};
 
 #[derive(Parser)] #[command(name="arkovia-miner", version, about="Arkovia Scrypt currency miner")]
 struct Cli { #[arg(short, long, default_value="miner.toml")] config: PathBuf, #[command(subcommand)] command: Commands }
-#[derive(Subcommand)] enum Commands { Mine, Status, Init }
+#[derive(Subcommand)] enum Commands { Mine, Status, Init { #[arg(long)] interactive: bool, #[arg(long)] force: bool } }
 
-fn main() -> Result<()> { let cli=Cli::parse(); match cli.command { Commands::Init => { std::fs::copy("miner.example.toml", &cli.config).context("copying example configuration")?; println!("Created {}. Edit it before mining.", cli.config.display()); Ok(()) }, Commands::Status => status(&Config::load(&cli.config)?), Commands::Mine => mine(Config::load(&cli.config)?) } }
+fn main() -> Result<()> { let cli=Cli::parse(); match cli.command { Commands::Init { interactive, force } => init(&cli.config, interactive, force), Commands::Status => status(&Config::load(&cli.config)?), Commands::Mine => mine(Config::load(&cli.config)?) } }
 
 fn banner() { println!("\x1b[92m\n █████╗ ██████╗ ██╗  ██╗ ██████╗ ██╗   ██╗██╗ █████╗ \n██╔══██╗██╔══██╗██║ ██╔╝██╔═══██╗██║   ██║██║██╔══██╗\n███████║██████╔╝█████╔╝ ██║   ██║██║   ██║██║███████║\n██╔══██║██╔══██╗██╔═██╗ ██║   ██║╚██╗ ██╔╝██║██╔══██║\n██║  ██║██║  ██║██║  ██╗╚██████╔╝ ╚████╔╝ ██║██║  ██║\n╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝  ╚═╝\n                 B L O C K C H A I N\x1b[0m\n"); }
+fn init(path:&std::path::Path, interactive:bool, force:bool)->Result<()> {
+    if path.exists() && !force { bail!("{} already exists. Use --force to replace it.",path.display()) }
+    if !interactive { fs::copy("miner.example.toml",path).context("copying example configuration")?; println!("Created {}. Edit it before mining, or rerun with init --interactive.",path.display()); return Ok(()); }
+    banner(); println!("\x1b[92mFirst-run setup — secret phrases are never requested or stored.\x1b[0m");
+    let node=ask("Arkovia node URL", "https://arkovia-node1.mywire.org/nxt")?;
+    let name=ask("Currency name", "Meldralite")?;
+    let code=ask("Currency code", "MLT")?;
+    let account_rs=ask("Your Arkovia RS account", "")?;
+    let account_id=ask("Your numeric account ID", "")?;
+    let public_key=ask("Your 64-character public key", "")?;
+    let units=ask("Whole units per mint", "1")?;
+    let threads=ask("CPU threads (0 = all)", "0")?;
+    let config=format!("# Created by the Arkovia Universal Currency Miner setup wizard.\n[node]\nurl = \"{}\"\ntimeout_seconds = 20\n\n[currency]\nname = \"{}\"\ncode = \"{}\"\nid = \"0\"\nunits_per_mint = {}\n\n[wallet]\naccount_rs = \"{}\"\naccount_id = \"{}\"\npublic_key = \"{}\"\n\n[miner]\nthreads = {}\ninitial_nonce = \"0\"\nrefresh_seconds = 20\nsubmit_mode = \"prepare\"\n\n[fees]\nfee_nqt = \"1000000\"\n\n[signer]\ncommand = \"\"\n",quote(&node),quote(&name),quote(&code),units.trim(),quote(&account_rs),quote(&account_id),quote(&public_key),threads.trim());
+    fs::write(path,config)?; let checked=Config::load(path)?; checked.validate_mining()?; println!("\x1b[92mCreated {}. Run `status` first, then mine in prepare mode.\x1b[0m",path.display()); Ok(())
+}
+fn ask(label:&str, default:&str)->Result<String>{ if default.is_empty(){print!("{label}: ");}else{print!("{label} [{default}]: ");}io::stdout().flush()?;let mut value=String::new();io::stdin().read_line(&mut value)?;let value=value.trim().to_owned();Ok(if value.is_empty(){default.to_owned()}else{value}) }
+fn quote(value:&str)->String { value.replace('\\',"\\\\").replace('"',"\\\"") }
 fn status(config: &Config) -> Result<()> { config.validate_node()?; banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?; let health=api.health()?; println!("Connection: ONLINE\nBlockchain: {}\nHeight: {}",health.get("application").and_then(|v|v.as_str()).unwrap_or("Arkovia"),health.get("numberOfBlocks").and_then(|v|v.as_u64()).unwrap_or(0)); Ok(()) }
 
 fn mine(config: Config) -> Result<()> {

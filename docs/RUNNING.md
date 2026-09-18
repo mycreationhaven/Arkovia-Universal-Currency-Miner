@@ -41,6 +41,12 @@ cp miner.example.toml miner.toml
 nano miner.toml
 ```
 
+Or start the guided public-settings wizard instead:
+
+```bash
+cargo run --release -- --config miner.toml init --interactive --force
+```
+
 Set the `[node]`, `[currency]`, and `[wallet]` values. Example:
 
 ```toml
@@ -107,6 +113,12 @@ git clone https://github.com/mycreationhaven/Arkovia-Universal-Currency-Miner.gi
 cd Arkovia-Universal-Currency-Miner
 Copy-Item miner.example.toml miner.toml
 notepad miner.toml
+```
+
+Or start the guided public-settings wizard instead:
+
+```powershell
+cargo run --release -- --config miner.toml init --interactive --force
 ```
 
 Fill in the same `[node]`, `[currency]`, and `[wallet]` details shown in the Linux example. Keep the fee at `1000000` NQT or higher.
@@ -176,3 +188,9 @@ Set the PowerShell `command` and `broadcast` settings from [LOCAL_SIGNER.md](LOC
 | `No wallet.public_key configured` | Add the 64-character public key for the wallet you are mining with. |
 | `Connection` error | Check `node.url`, your internet connection, and whether the node is online. |
 | Computer becomes slow | Lower `[miner].threads`, such as `threads = 1` or `threads = 2`. |
+
+## Setup wizard reference
+
+`init --interactive` asks for the node URL, currency name and code, wallet RS address, numeric account ID, public key, unit amount, and CPU threads. It always creates `submit_mode = "prepare"` and the required `0.01 ARKOS` minimum fee. It never asks for, saves, or transmits a secret phrase.
+
+Run it with `--force` only when you intend to replace an existing `miner.toml` file.

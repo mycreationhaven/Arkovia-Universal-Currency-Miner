@@ -19,6 +19,8 @@ A Rust CPU miner for Scrypt (`algorithm = 5`) currencies issued through the Arko
 3. Run `cargo test`, then `cargo run --release -- --config miner.toml status`.
 4. Start mining with `cargo run --release -- --config miner.toml mine`, or use `run-linux.sh` / `run-windows.bat`.
 
+For a guided first setup, run `cargo run --release -- --config miner.toml init --interactive --force`.
+
 The first release deliberately defaults to `submit_mode = "prepare"`. This lets you inspect the unsigned mint transaction and keeps the secret phrase out of configuration files and network requests. A local signing adapter will be included before switching production use to broadcast mode.
 
 ## Security
