@@ -25,13 +25,15 @@ fn default_timeout() -> u64 { 20 } fn default_refresh() -> u64 { 20 } fn default
 impl Config {
     pub fn load(path: &Path) -> Result<Self> {
         let value: Self = toml::from_str(&fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?)?;
-        value.validate()?; Ok(value)
+        Ok(value)
     }
     pub fn currency_id(&self) -> Result<Option<u64>> { if self.currency.id.trim().is_empty() || self.currency.id == "0" { Ok(None) } else { Ok(Some(self.currency.id.parse()?)) } }
     pub fn account_id(&self) -> Result<u64> { self.wallet.account_id.parse().context("wallet.account_id must be the unsigned numeric account ID") }
     pub fn fee_nqt(&self) -> Result<u64> { Ok(self.fees.fee_nqt.parse()?) }
-    fn validate(&self) -> Result<()> {
-        if self.node.url.trim().is_empty() || self.wallet.account_rs.trim().is_empty() { bail!("node.url and wallet.account_rs are required") }
+    pub fn validate_node(&self) -> Result<()> { if self.node.url.trim().is_empty() { bail!("node.url is required") } Ok(()) }
+    pub fn validate_mining(&self) -> Result<()> {
+        self.validate_node()?;
+        if self.wallet.account_rs.trim().is_empty() { bail!("wallet.account_rs is required") }
         if !self.wallet.public_key.is_empty() && (self.wallet.public_key.len() != 64 || !self.wallet.public_key.bytes().all(|b| b.is_ascii_hexdigit())) { bail!("wallet.public_key must be a 64-character hexadecimal public key") }
         if self.currency.units_per_mint == 0 { bail!("currency.units_per_mint must be greater than zero") }
         if self.fee_nqt()? < MINIMUM_FEE_NQT { bail!("fee_nqt must be at least {MINIMUM_FEE_NQT} (0.01 ARKOS)") }

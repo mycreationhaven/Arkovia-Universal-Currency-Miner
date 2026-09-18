@@ -15,7 +15,7 @@ A Rust CPU miner for Scrypt (`algorithm = 5`) currencies issued through the Arko
 ## First testnet run
 
 1. Install the stable [Rust toolchain](https://rustup.rs/).
-2. Copy `miner.example.toml` to `miner.toml` and fill in your testnet currency, account RS address, numeric account ID, and node URL.
+2. Copy `miner.example.toml` to `miner.toml` and fill in your testnet currency, account RS address, numeric account ID, public key, and node URL.
 3. Run `cargo test`, then `cargo run --release -- --config miner.toml status`.
 4. Start mining with `cargo run --release -- --config miner.toml mine`, or use `run-linux.sh` / `run-windows.bat`.
 
@@ -24,3 +24,8 @@ The first release deliberately defaults to `submit_mode = "prepare"`. This lets 
 ## Security
 
 Do not put a secret phrase in `miner.toml`, a command line, a batch file, or an issue. Use a testnet account for early validation.
+
+## Documentation
+
+- Complete setup and run instructions: [docs/RUNNING.md](docs/RUNNING.md)
+- Local signing adapter contract and security requirements: [docs/LOCAL_SIGNER.md](docs/LOCAL_SIGNER.md)

@@ -14,10 +14,10 @@ struct Cli { #[arg(short, long, default_value="miner.toml")] config: PathBuf, #[
 fn main() -> Result<()> { let cli=Cli::parse(); match cli.command { Commands::Init => { std::fs::copy("miner.example.toml", &cli.config).context("copying example configuration")?; println!("Created {}. Edit it before mining.", cli.config.display()); Ok(()) }, Commands::Status => status(&Config::load(&cli.config)?), Commands::Mine => mine(Config::load(&cli.config)?) } }
 
 fn banner() { println!("\x1b[92m\n █████╗ ██████╗ ██╗  ██╗ ██████╗ ██╗   ██╗██╗ █████╗ \n██╔══██╗██╔══██╗██║ ██╔╝██╔═══██╗██║   ██║██║██╔══██╗\n███████║██████╔╝█████╔╝ ██║   ██║██║   ██║██║███████║\n██╔══██║██╔══██╗██╔═██╗ ██║   ██║╚██╗ ██╔╝██║██╔══██║\n██║  ██║██║  ██║██║  ██╗╚██████╔╝ ╚████╔╝ ██║██║  ██║\n╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝  ╚═╝\n                 B L O C K C H A I N\x1b[0m\n"); }
-fn status(config: &Config) -> Result<()> { banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?; let health=api.health()?; println!("Connection: ONLINE\nBlockchain: {}\nHeight: {}",health.get("application").and_then(|v|v.as_str()).unwrap_or("Arkovia"),health.get("numberOfBlocks").and_then(|v|v.as_u64()).unwrap_or(0)); Ok(()) }
+fn status(config: &Config) -> Result<()> { config.validate_node()?; banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?; let health=api.health()?; println!("Connection: ONLINE\nBlockchain: {}\nHeight: {}",health.get("application").and_then(|v|v.as_str()).unwrap_or("Arkovia"),health.get("numberOfBlocks").and_then(|v|v.as_u64()).unwrap_or(0)); Ok(()) }
 
 fn mine(config: Config) -> Result<()> {
-    banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?;
+    config.validate_mining()?; banner(); let api=ArkoviaApi::new(config.node.url.clone(),config.node.timeout_seconds)?;
     let currency=api.get_currency(&config.currency.code)?; let currency_id=config.currency_id()?.unwrap_or(currency.currency.parse()?);
     if currency.algorithm != Some(5) { bail!("{} ({}) is not a Scrypt minting currency (expected algorithm ID 5)", currency.code, currency.currency); }
     let decimals=currency.decimals; let multiplier=10u64.checked_pow(decimals as u32).context("unsupported currency decimals")?; let units=config.currency.units_per_mint.checked_mul(multiplier).context("units overflow")?;
