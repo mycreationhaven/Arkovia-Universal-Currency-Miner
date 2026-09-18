@@ -37,6 +37,7 @@ cargo --version
 ```bash
 git clone https://github.com/mycreationhaven/Arkovia-Universal-Currency-Miner.git
 cd Arkovia-Universal-Currency-Miner
+chmod +x run-linux.sh signer/*.sh
 cp miner.example.toml miner.toml
 nano miner.toml
 ```
@@ -96,6 +97,7 @@ To keep the miner running when you disconnect from an SSH session:
 ```bash
 sudo apt install -y screen
 cd Arkovia-Universal-Currency-Miner
+chmod +x run-linux.sh signer/*.sh
 screen -S arkovia-miner
 ./target/release/arkovia-universal-currency-miner --config miner.toml mine
 ```

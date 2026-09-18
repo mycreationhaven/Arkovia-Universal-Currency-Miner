@@ -28,9 +28,12 @@ On Linux, use `screen` to keep the miner running after you disconnect from SSH:
 ```bash
 sudo apt install -y screen
 cd Arkovia-Universal-Currency-Miner
+chmod +x run-linux.sh signer/*.sh
 screen -S arkovia-miner
 ./target/release/arkovia-universal-currency-miner --config miner.toml mine
 ```
+
+If Linux reports `Permission denied` for `run-linux.sh`, run `chmod +x run-linux.sh signer/*.sh` once from the miner folder.
 
 Detach without stopping the miner with `Ctrl+A`, then `D`. Reconnect later with:
 
