@@ -39,4 +39,50 @@ On Windows, use a local `.exe` path such as:
 command = "arkovia-local-signer.exe"
 ```
 
-The dedicated signer implementation is the next security-sensitive component. It must use Arkovia's exact Curve25519 transaction-signing implementation and will be validated against known signed transaction vectors before it is enabled for production use.
+## Included adapters
+
+This repository includes adapters that call Arkovia's existing offline `nxt.tools.SignTransactions` utility. That utility uses the same transaction and Curve25519 signing code as Arkovia itself.
+
+- Linux: `signer/arkovia-local-signer.sh`
+- Windows: `signer/arkovia-local-signer.ps1`
+
+Both adapters receive the unsigned bytes from the miner, create restricted temporary files, prompt locally for the secret phrase, invoke Arkovia's offline signer, print only signed transaction bytes to standard output, and erase the temporary directory afterwards.
+
+They require a **local, built** checkout of [Arkovia Blockchain](https://github.com/mycreationhaven/Arkovia-Blockchain). The checkout must contain `classes`, `lib`, and `conf`. Set `ARKOVIA_NODE_HOME` to that directory.
+
+### Linux configuration
+
+```bash
+chmod +x signer/arkovia-local-signer.sh
+export ARKOVIA_NODE_HOME=/opt/arkos
+```
+
+```toml
+[miner]
+submit_mode = "broadcast"
+
+[signer]
+command = "./signer/arkovia-local-signer.sh"
+```
+
+Install `jq` and a Java runtime first. The script reads the phrase from `/dev/tty`, so it prompts visibly even though the miner sends it a JSON payload through standard input.
+
+### Windows configuration
+
+In PowerShell, set the local checkout path for the current session:
+
+```powershell
+$env:ARKOVIA_NODE_HOME = "C:\Arkovia-Blockchain"
+```
+
+Then set:
+
+```toml
+[miner]
+submit_mode = "broadcast"
+
+[signer]
+command = "powershell -ExecutionPolicy Bypass -File .\signer\arkovia-local-signer.ps1"
+```
+
+The PowerShell adapter prompts using a protected input field, then passes the phrase only through a local process pipe to the Arkovia signer.

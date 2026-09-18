@@ -136,6 +136,37 @@ Use `Ctrl+C` to stop it. If Windows Defender asks about the self-built executabl
 
 `broadcast` requires a dedicated local signing adapter. Configure it only after the adapter is installed and validated; see [LOCAL_SIGNER.md](LOCAL_SIGNER.md).
 
+## Optional: enable local signing and broadcast
+
+The included adapters use the offline signing tool included with a local Arkovia Blockchain checkout. They do **not** send your phrase to an Arkovia node.
+
+### Linux
+
+Install the additional packages:
+
+```bash
+sudo apt install -y jq default-jre
+```
+
+Build or otherwise prepare a local Arkovia Blockchain checkout that contains `classes`, `lib`, and `conf`, then run:
+
+```bash
+export ARKOVIA_NODE_HOME=/opt/arkos
+chmod +x signer/arkovia-local-signer.sh
+```
+
+Set the two `broadcast` settings shown in [LOCAL_SIGNER.md](LOCAL_SIGNER.md). When a solution is found, the terminal prompts for the phrase locally, signs through Arkovia's offline signer, then broadcasts the signed transaction.
+
+### Windows
+
+Install a Java runtime and prepare a local built Arkovia Blockchain checkout. In the same PowerShell session used to launch the miner:
+
+```powershell
+$env:ARKOVIA_NODE_HOME = "C:\Arkovia-Blockchain"
+```
+
+Set the PowerShell `command` and `broadcast` settings from [LOCAL_SIGNER.md](LOCAL_SIGNER.md). The window prompts for the phrase securely when a solution is found.
+
 ## Troubleshooting
 
 | Message | Meaning and action |
