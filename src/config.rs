@@ -14,7 +14,7 @@ pub struct Config {
     #[serde(default)] pub signer: SignerConfig,
 }
 
-#[derive(Debug, Clone, Deserialize)] pub struct NodeConfig { pub url: String, #[serde(default = "default_timeout")] pub timeout_seconds: u64 }
+#[derive(Debug, Clone, Deserialize)] pub struct NodeConfig { pub url: String, #[serde(default = "default_timeout")] pub timeout_seconds: u64, #[serde(default)] pub explorer_url: String }
 #[derive(Debug, Clone, Deserialize)] pub struct CurrencyConfig { pub name: String, pub code: String, #[serde(default)] pub id: String, pub units_per_mint: u64 }
 #[derive(Debug, Clone, Deserialize)] pub struct WalletConfig { pub account_rs: String, #[serde(default)] pub account_id: String, #[serde(default)] pub public_key: String }
 #[derive(Debug, Clone, Deserialize)] pub struct MinerConfig { #[serde(default)] pub threads: usize, #[serde(default)] pub initial_nonce: String, #[serde(default = "default_refresh")] pub refresh_seconds: u64, #[serde(default = "default_mode")] pub submit_mode: String }

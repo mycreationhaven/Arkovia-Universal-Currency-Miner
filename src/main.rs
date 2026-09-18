@@ -26,7 +26,7 @@ fn init(path:&std::path::Path, interactive:bool, force:bool)->Result<()> {
     let public_key=ask("Your 64-character public key", "")?;
     let units=ask("Whole units per mint", "1")?;
     let threads=ask("CPU threads (0 = all)", "0")?;
-    let config=format!("# Created by the Arkovia Universal Currency Miner setup wizard.\n[node]\nurl = \"{}\"\ntimeout_seconds = 20\n\n[currency]\nname = \"{}\"\ncode = \"{}\"\nid = \"0\"\nunits_per_mint = {}\n\n[wallet]\naccount_rs = \"{}\"\naccount_id = \"{}\"\npublic_key = \"{}\"\n\n[miner]\nthreads = {}\ninitial_nonce = \"0\"\nrefresh_seconds = 20\nsubmit_mode = \"prepare\"\n\n[fees]\nfee_nqt = \"1000000\"\n\n[signer]\ncommand = \"\"\n",quote(&node),quote(&name),quote(&code),units.trim(),quote(&account_rs),quote(&account_id),quote(&public_key),threads.trim());
+    let config=format!("# Created by the Arkovia Universal Currency Miner setup wizard.\n[node]\nurl = \"{}\"\ntimeout_seconds = 20\nexplorer_url = \"\"\n\n[currency]\nname = \"{}\"\ncode = \"{}\"\nid = \"0\"\nunits_per_mint = {}\n\n[wallet]\naccount_rs = \"{}\"\naccount_id = \"{}\"\npublic_key = \"{}\"\n\n[miner]\nthreads = {}\ninitial_nonce = \"0\"\nrefresh_seconds = 20\nsubmit_mode = \"prepare\"\n\n[fees]\nfee_nqt = \"1000000\"\n\n[signer]\ncommand = \"\"\n",quote(&node),quote(&name),quote(&code),units.trim(),quote(&account_rs),quote(&account_id),quote(&public_key),threads.trim());
     fs::write(path,config)?; let checked=Config::load(path)?; checked.validate_mining()?; println!("\x1b[92mCreated {}. Run `status` first, then mine in prepare mode.\x1b[0m",path.display()); Ok(())
 }
 fn ask(label:&str, default:&str)->Result<String>{ if default.is_empty(){print!("{label}: ");}else{print!("{label} [{default}]: ");}io::stdout().flush()?;let mut value=String::new();io::stdin().read_line(&mut value)?;let value=value.trim().to_owned();Ok(if value.is_empty(){default.to_owned()}else{value}) }
@@ -51,7 +51,7 @@ fn mine(config: Config) -> Result<()> {
         if config.wallet.public_key.trim().is_empty() { println!("\x1b[93mNo wallet.public_key configured. Solution was not prepared for submission.\x1b[0m"); continue; }
         let prepared=api.prepare_mint(currency_id,nonce,units,target.counter,fee,&config.wallet.public_key)?;
         if config.miner.submit_mode=="prepare" { save_prepared_transaction(&prepared)?; }
-        else { let signed=run_signer(&config.signer.command,&signer_payload(&prepared))?; println!("Broadcast result: {}",serde_json::to_string_pretty(&api.broadcast(&signed)?)?); }
+        else { let signed=run_signer(&config.signer.command,&signer_payload(&prepared))?; print_broadcast(&api.broadcast(&signed)?,&config.node.explorer_url); }
     }
 }
 
@@ -65,6 +65,7 @@ fn solve(currency_id:u64, account_id:u64, units:u64, counter:u64, target:[u8;32]
     let elapsed=began.elapsed(); if found.load(Ordering::Relaxed) { Ok(Some((solution.load(Ordering::Relaxed),attempts.load(Ordering::Relaxed),elapsed))) } else { Ok(None) }
 }
 fn save_prepared_transaction(prepared:&serde_json::Value)->Result<()> { let payload=signer_payload(prepared); let timestamp=SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(); let path=format!("prepared-mint-{timestamp}.json"); fs::write(&path,serde_json::to_string_pretty(&payload)?)?; println!("\x1b[92mUnsigned mint transaction saved locally: {path}\x1b[0m"); Ok(()) }
+fn print_broadcast(response:&serde_json::Value, explorer_url:&str) { let transaction=response.get("transaction").and_then(|v|v.as_str()).unwrap_or("unknown"); let full_hash=response.get("fullHash").and_then(|v|v.as_str()).unwrap_or("unknown"); println!("\x1b[92mMint accepted by node. Transaction: {transaction}\nFull hash: {full_hash}\x1b[0m"); if !explorer_url.trim().is_empty() && transaction!="unknown" { println!("Explorer: {}/transaction/{}",explorer_url.trim_end_matches('/'),transaction); } }
 fn run_signer(command:&str,payload:&serde_json::Value)->Result<String>{use std::io::Write;
     #[cfg(target_os="windows")] let mut child=Command::new("cmd").arg("/C").arg(command).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().context("starting local signer")?;
     #[cfg(not(target_os="windows"))] let mut child=Command::new("sh").arg("-c").arg(command).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().context("starting local signer")?;

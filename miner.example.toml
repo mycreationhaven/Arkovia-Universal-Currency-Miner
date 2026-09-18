@@ -2,6 +2,8 @@
 [node]
 url = "https://arkovia-node1.mywire.org/nxt"
 timeout_seconds = 20
+# Optional link prefix displayed after a mint broadcasts successfully.
+explorer_url = ""
 
 [currency]
 # Leave id at 0 to resolve it from code when mining starts.

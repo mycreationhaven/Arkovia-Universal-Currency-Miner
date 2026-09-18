@@ -50,6 +50,8 @@ Both adapters receive the unsigned bytes from the miner, create restricted tempo
 
 They require a **local, built** checkout of [Arkovia Blockchain](https://github.com/mycreationhaven/Arkovia-Blockchain). The checkout must contain `classes`, `lib`, and `conf`. Set `ARKOVIA_NODE_HOME` to that directory.
 
+To set this up automatically without starting an Arkovia node, use `signer/setup-local-signer.sh` on Linux or `signer/setup-local-signer.ps1` on Windows. Both obtain the official Arkovia source and build only the local signing dependency.
+
 ### Linux configuration
 
 ```bash

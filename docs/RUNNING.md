@@ -165,6 +165,8 @@ Build or otherwise prepare a local Arkovia Blockchain checkout that contains `cl
 ```bash
 export ARKOVIA_NODE_HOME=/opt/arkos
 chmod +x signer/arkovia-local-signer.sh
+chmod +x signer/setup-local-signer.sh
+./signer/setup-local-signer.sh
 ```
 
 Set the two `broadcast` settings shown in [LOCAL_SIGNER.md](LOCAL_SIGNER.md). When a solution is found, the terminal prompts for the phrase locally, signs through Arkovia's offline signer, then broadcasts the signed transaction.
@@ -175,6 +177,8 @@ Install a Java runtime and prepare a local built Arkovia Blockchain checkout. In
 
 ```powershell
 $env:ARKOVIA_NODE_HOME = "C:\Arkovia-Blockchain"
+Set-ExecutionPolicy -Scope Process Bypass
+.\signer\setup-local-signer.ps1
 ```
 
 Set the PowerShell `command` and `broadcast` settings from [LOCAL_SIGNER.md](LOCAL_SIGNER.md). The window prompts for the phrase securely when a solution is found.
@@ -194,3 +198,7 @@ Set the PowerShell `command` and `broadcast` settings from [LOCAL_SIGNER.md](LOC
 `init --interactive` asks for the node URL, currency name and code, wallet RS address, numeric account ID, public key, unit amount, and CPU threads. It always creates `submit_mode = "prepare"` and the required `0.01 ARKOS` minimum fee. It never asks for, saves, or transmits a secret phrase.
 
 Run it with `--force` only when you intend to replace an existing `miner.toml` file.
+
+## Release downloads
+
+Every version tag such as `v0.1.0` triggers GitHub Actions to create a Linux x64 `.tar.gz` package and a Windows x64 `.zip` package, then attaches them to the GitHub Release. The packages contain the compiled miner, an example configuration, the platform launch script, the signing adapter, signer setup script, and these guides.
