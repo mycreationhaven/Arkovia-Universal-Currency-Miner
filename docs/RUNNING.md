@@ -89,6 +89,25 @@ Or run the compiled program directly:
 
 Stop it with `Ctrl+C`. Each active CPU thread uses memory because Scrypt is memory-hard; reduce `threads` in `miner.toml` if the computer becomes slow.
 
+### Run inside `screen` over SSH
+
+To keep the miner running when you disconnect from an SSH session:
+
+```bash
+sudo apt install -y screen
+cd Arkovia-Universal-Currency-Miner
+screen -S arkovia-miner
+./target/release/arkovia-universal-currency-miner --config miner.toml mine
+```
+
+Detach with `Ctrl+A`, then `D`. Reopen the miner console with:
+
+```bash
+screen -r arkovia-miner
+```
+
+To stop it, reconnect to the screen, press `Ctrl+C`, and run `exit`.
+
 ## Windows 10/11 (64-bit)
 
 ### 1. Install required tools

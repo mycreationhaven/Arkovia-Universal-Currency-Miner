@@ -21,6 +21,25 @@ A Rust CPU miner for Scrypt (`algorithm = 5`) currencies issued through the Arko
 
 For a guided first setup, run `cargo run --release -- --config miner.toml init --interactive --force`.
 
+### Keep mining after leaving a Linux SSH session
+
+On Linux, use `screen` to keep the miner running after you disconnect from SSH:
+
+```bash
+sudo apt install -y screen
+cd Arkovia-Universal-Currency-Miner
+screen -S arkovia-miner
+./target/release/arkovia-universal-currency-miner --config miner.toml mine
+```
+
+Detach without stopping the miner with `Ctrl+A`, then `D`. Reconnect later with:
+
+```bash
+screen -r arkovia-miner
+```
+
+Stop the miner with `Ctrl+C`, then close the screen session with `exit`.
+
 The first release deliberately defaults to `submit_mode = "prepare"`. This lets you inspect the unsigned mint transaction and keeps the secret phrase out of configuration files and network requests. A local signing adapter will be included before switching production use to broadcast mode.
 
 ## Security
